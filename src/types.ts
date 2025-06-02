@@ -1,8 +1,8 @@
-export type Priority = 'low' | 'medium' | 'high';
-export type Status = 'backlog' | 'todo' | 'in_progress' | 'done' | 'cancelled';
+export type Priority = 'Low' | 'Medium' | 'High';
+export type Status = 'Backlog' | 'InProgress' | 'Done' ;
 
 export interface Task {
-  id: string;
+  id: number;
   title: string;
   description?: string;
   priority: Priority;
@@ -13,7 +13,14 @@ export interface Task {
 }
 
 export interface Board {
-  id: string;
+  id: number;
   name: string;
   tasks?: Task[];
+}
+
+export interface User {
+  id: number;
+  fullName: string;
+  email: string;
+  avatarUrl?: string;
 }

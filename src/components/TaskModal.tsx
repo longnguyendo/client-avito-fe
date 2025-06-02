@@ -1,6 +1,6 @@
 import { Modal, Box, TextField, Button, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
-import { useForm } from 'react-hook-form';
-import { useMutation, useMutationState, useQueryClient } from '@tanstack/react-query';
+import { Controller, useForm } from 'react-hook-form';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
 import type { Task } from '../types';
 // import { Priority, Status } from '../types';
@@ -27,17 +27,18 @@ export default function TaskModal({ open, onClose, task }: TaskModalProps) {
     defaultValues: task || { 
       title: '', 
       description: '', 
+      board: '',
       priority: 'medium', 
-      status: 'backlog', 
-      boardId: '' 
+      status: 'Backlog', 
+      user: '',
     }
   });
 
   const mutation = useMutation({
     mutationFn: (data: Task) => 
       task 
-        ? api.put(`/tasks/${task.id}`, data) 
-        : api.post('/tasks', data),
+        ? api.put(`/tasks/update/${task.id}`, data) 
+        : api.post('/tasks/create', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['boards'] });
@@ -79,15 +80,21 @@ export default function TaskModal({ open, onClose, task }: TaskModalProps) {
               <MenuItem value="medium">Medium</MenuItem>
               <MenuItem value="high">High</MenuItem>
             </Select>
-          </FormControl>
+          </FormControl> 
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Priority</InputLabel>
+            <Select label="Priority" {...register('priority')}>
+              <MenuItem value="low">Low</MenuItem>
+              <MenuItem value="medium">Medium</MenuItem>
+              <MenuItem value="high">High</MenuItem>
+            </Select>
+          </FormControl> 
           <FormControl fullWidth margin="normal">
             <InputLabel>Status</InputLabel>
-            <Select label="Status" {...register('status')}>
+            <Select label="status" {...register('status')}>
               <MenuItem value="backlog">Backlog</MenuItem>
-              <MenuItem value="todo">Todo</MenuItem>
               <MenuItem value="in_progress">In Progress</MenuItem>
               <MenuItem value="done">Done</MenuItem>
-              <MenuItem value="cancelled">Cancelled</MenuItem>
             </Select>
           </FormControl>
           <Button 

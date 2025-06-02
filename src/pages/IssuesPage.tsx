@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 
 export default function IssuesPage() {
+  
   const [filters, setFilters] = useState({
     status: '',
     search: '',
@@ -24,9 +25,12 @@ export default function IssuesPage() {
 
   const { data: tasks, isLoading } = useQuery({
     queryKey: ['task', filters],
-    queryFn: () => api.get('/tasks', { params: filters }).then(res => res.data),
+    queryFn: () => api.get('/tasks').then(res => res.data),
   });
+
+  
   console.log("task", tasks);
+
   const filteredTasks = tasks?.data?.filter((task: Task) => {
     return (
       (!filters.status || task.status === filters.status) &&
@@ -49,11 +53,9 @@ export default function IssuesPage() {
             onChange={(e) => setFilters({...filters, status: e.target.value})}
           >
             <MenuItem value="">All</MenuItem>
-            <MenuItem value="backlog">Backlog</MenuItem>
-            <MenuItem value="todo">Todo</MenuItem>
-            <MenuItem value="in_progress">In Progress</MenuItem>
-            <MenuItem value="done">Done</MenuItem>
-            <MenuItem value="cancelled">Cancelled</MenuItem>
+            <MenuItem value="Backlog">Backlog</MenuItem>
+            <MenuItem value="InProgress">In Progress</MenuItem>
+            <MenuItem value="Done">Done</MenuItem>
           </Select>
         </FormControl>
         <Button variant="contained" onClick={() => setModalOpen(true)}>

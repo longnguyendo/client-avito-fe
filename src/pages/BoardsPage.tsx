@@ -11,7 +11,7 @@ export default function BoardsPage() {
   });
 
   if (isLoading) return <CircularProgress />;
-  console.log(boards);
+  // console.log(boards);
   
 
   return (
