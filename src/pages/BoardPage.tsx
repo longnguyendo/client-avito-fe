@@ -30,10 +30,10 @@ const statusColors: Record<Status, string> = {
   Done: '#c8e6c9',
 };
 
+
 function Column({ status, tasks, onDrop }: ColumnProps) {
   
   // console.log(tasks);
-  
 
   const ref = useRef<HTMLDivElement>(null);
   const [{ isOver }, drop] = useDrop(() => ({

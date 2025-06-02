@@ -8,6 +8,8 @@ export interface Task {
   priority: Priority;
   status: Status;
   boardId: string;
+  boardName: string;
+  assignee: User;
   createdAt: string;
   updatedAt: string;
 }

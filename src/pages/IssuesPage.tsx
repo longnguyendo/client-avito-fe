@@ -15,28 +15,47 @@ import {
 } from '@mui/material';
 
 export default function IssuesPage() {
-  
+
+  // filter and search
   const [filters, setFilters] = useState({
     status: '',
     search: '',
   });
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-
   const { data: tasks, isLoading } = useQuery({
     queryKey: ['task', filters],
     queryFn: () => api.get('/tasks').then(res => res.data),
   });
-
-  
-  console.log("task", tasks);
-
   const filteredTasks = tasks?.data?.filter((task: Task) => {
     return (
       (!filters.status || task.status === filters.status) &&
-      (!filters.search || task.title.includes(filters.search))
+      (!filters.search || task.title.includes(filters.search) || task.assignee.fullName.includes(filters.search))
     );
   });
+
+  // modal open and edit
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
+  const [mode, setMode] = useState<'view' | 'edit' | 'create'>('view');
+
+  const handleTaskClick = (task: Task) => {
+    setSelectedTask(task);
+    setMode('view');
+    setIsModalOpen(true);
+  };
+
+  const handleEditClick = () => {
+    setMode('edit');
+  };
+
+  const handleCreateClick = () => {
+    setSelectedTask(undefined);
+    setMode('create');
+    setIsModalOpen(true);
+  };
+
+  const handleSave = (taskData: Partial<Task>) => {
+    console.log('Saving task:', taskData);
+  };
 
   return (
     <Box sx={{ p: 2 }}>
@@ -58,7 +77,7 @@ export default function IssuesPage() {
             <MenuItem value="Done">Done</MenuItem>
           </Select>
         </FormControl>
-        <Button variant="contained" onClick={() => setModalOpen(true)}>
+        <Button variant="contained" onClick={() => setIsModalOpen(true)}>
           Create Task
         </Button>
       </Box>
@@ -67,24 +86,31 @@ export default function IssuesPage() {
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
           {filteredTasks?.map((task: Task) => (
-            <Box 
-              key={task.id} 
-              onClick={() => setSelectedTask(task)}
-              sx={{ p: 2, border: '1px solid #eee', cursor: 'pointer' }}
-            >
-              <div>{task.title}</div>
-              <div>Status: {task.status}</div>
-            </Box>
+            <>
+              <Box 
+                key={task.id} 
+                onClick={() => setSelectedTask(task)}
+                sx={{ p: 2, border: '1px solid #eee', cursor: 'pointer' }} 
+              >
+                <p>{task.title}</p>
+                <p>{task.description}</p>
+                <p>Status: {task.status}</p>
+                <p>Avatar: {task.assignee.avatarUrl}</p>
+                <p>Full Name: {task.assignee.fullName}</p>
+              </Box>
+              <div onClick={() => handleTaskClick(task)}>
+                Click me to view task
+              </div>
+            </>
           ))}
         </Box>
       )}
-      <TaskModal 
-        open={modalOpen || !!selectedTask} 
-        onClose={() => {
-          setModalOpen(false);
-          setSelectedTask(null);
-        }} 
-        task={selectedTask ?? undefined}
+      <TaskModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        task={selectedTask}
+        mode='edit'
+        onSave={handleSave}
       />
     </Box>
   );

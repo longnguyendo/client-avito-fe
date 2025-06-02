@@ -57,7 +57,7 @@ const OneTask = ({ task }: OneTaskProps) => {
             color: 'white'
           }}
         />
-        {/* {task?.assignee && (
+        {task?.assignee && (
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Avatar 
               src={task.assignee.avatarUrl} 
@@ -68,7 +68,7 @@ const OneTask = ({ task }: OneTaskProps) => {
               {task.assignee.fullName}
             </Typography>
           </Box>
-        )} */}
+        )}
       </Box>
     </Box>
   );

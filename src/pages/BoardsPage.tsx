@@ -13,6 +13,18 @@ export default function BoardsPage() {
   if (isLoading) return <CircularProgress />;
   // console.log(boards);
   
+  const buttonStyle = {
+    display: 'inline-block',
+    padding: '10px 20px',
+    backgroundColor: '#007bff',
+    color: 'white',
+    textDecoration: 'none',
+    borderRadius: '4px',
+    fontWeight: '600',
+    textAlign: 'center' as 'center',  
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease',
+  };
 
   return (
     <Box sx={{ p: 2 }}>
@@ -20,7 +32,7 @@ export default function BoardsPage() {
         <Card key={board.id} sx={{ mb: 2 }}>
           <CardContent>
             <Typography variant="h5">{board.name}</Typography>
-            <Link to={`/board/${board.id}`}>View Board</Link>
+            <Link to={`/board/${board.id}`} style={buttonStyle} >View Board</Link>
           </CardContent>
         </Card>
       ))}
