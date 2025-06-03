@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { data, useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Modal,
   Box,
@@ -15,7 +15,7 @@ import {
   Avatar
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import type { Task, User } from '../types';
+import type { Task } from '../types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Api } from '../types2';
 import type {ModelsCreateTaskRequest } from '../types2';
@@ -40,18 +40,8 @@ interface TaskModalProps {
   task?: Task;
   // onSave: (taskData: Partial<Task>) => void;
 }
-interface FormValues {
-  title: string;
-  description: string;
-  priority: 'Low' | 'Medium' | 'High';
-  status: 'Backlog' | 'InProgress' | 'Done';
-  assigneeId: string;
-  boardId: string;
-}
 
 const CreateTaskModal = ({ open, onClose}: TaskModalProps) => {
-
-  const location = useLocation();
   
   const [formData, setFormData] = useState<ModelsCreateTaskRequest>({
     title: '',
@@ -82,29 +72,6 @@ const CreateTaskModal = ({ open, onClose}: TaskModalProps) => {
 
   const navigate = useNavigate();
 
-  // const formDataToSend = new FormData();
-  // formDataToSend.append('title', formData.title);
-  // formDataToSend.append('description', formData.description);
-  // formDataToSend.append('priority', formData.priority);
-  // formDataToSend.append('status', formData.status);
-  // formDataToSend.append('assigneeId', formData.assigneeId);
-  // formDataToSend.append('boardId', formData.boardId);
-
-  //   const createTaskMutation = useMutation({
-  //   mutationFn: (formDataToSend) => { 
-  //     return api.post('/tasks/create/', formDataToSend)
-  //   },
-  //   onSuccess: () => {
-  //     queryClient.invalidateQueries({ queryKey: ['tasks'] });
-  //     navigate('/board/1');
-  //     onClose();
-  //   },
-  // });
-
-
-  // const handleSubmit = () => {
-  //   createTaskMutation.mutate(formDataToSend);
-  // };
   const api = new Api();
   const createTaskMutation = useMutation({
     mutationFn: (taskData: ModelsCreateTaskRequest) => 

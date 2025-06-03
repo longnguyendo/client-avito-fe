@@ -12,6 +12,10 @@ export default function TaskCard({ task }: { task: Task }) {
     item: { id: task.id },
   }));
   drag(ref);
+
+  const handleSave = (taskData: Partial<Task>) => {
+    console.log('Saving task:', taskData);
+  };
   return (
     <>
       <div 
@@ -27,7 +31,7 @@ export default function TaskCard({ task }: { task: Task }) {
         </Card>
       </div>
       <TaskModal 
-        // onSave={}
+        onSave={handleSave}
         open={modalOpen} 
         onClose={() => setModalOpen(false)} 
         task={task}
