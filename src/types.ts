@@ -7,9 +7,9 @@ export interface Task {
   description?: string;
   priority: Priority;
   status: Status;
+  assignee?: User | null;
   boardId: string;
-  boardName: string;
-  assignee: User;
+  boardName?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -17,7 +17,9 @@ export interface Task {
 export interface Board {
   id: number;
   name: string;
+  description?: string;
   tasks?: Task[];
+  taskCount: number;
 }
 
 export interface User {
@@ -25,4 +27,16 @@ export interface User {
   fullName: string;
   email: string;
   avatarUrl?: string;
+  description?: string;
+  teamId: number;
+  teamName: string;
+  tasksCount: number; 
+}
+
+export interface Teams {
+  id: number;
+  name: string;
+  description?: string;
+  usersCount: number;
+  boardsCount: number; 
 }

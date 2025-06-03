@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { data, useLocation, useNavigate } from 'react-router-dom';
 import {
   Modal,
-  Drawer,
   Box,
   Typography,
   Button,
@@ -17,7 +16,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import type { Task, User } from '../types';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
 
 const modalStyle = {
@@ -38,16 +37,12 @@ interface TaskModalProps {
   open: boolean;
   onClose: () => void;
   task?: Task;
-  // mode: 'view' | 'edit' | 'create';
-  onSave: (taskData: Partial<Task>) => void;
+  // onSave: (taskData: Partial<Task>) => void;
 }
 
-const TaskModal = ({ open, onClose, task, onSave }: TaskModalProps) => {
-
+const CreateTaskModal = ({ open, onClose}: TaskModalProps) => {
 
   const location = useLocation();
-  const navigate = useNavigate();
-  const isBoardPage = location.pathname.includes('/board');
   
   const [formData, setFormData] = useState({
     title: '',
@@ -55,48 +50,60 @@ const TaskModal = ({ open, onClose, task, onSave }: TaskModalProps) => {
     priority: 'Medium',
     status: 'Backlog',
     assigneeId: '',
+    boardId: '',
   });
 
-  useEffect(() => {
-    if (task) {
-      setFormData({
-        title: task.title,
-        description: task.description ?? '',
-        priority: task.priority,
-        status: task.status,
-        assigneeId: task.assigneeId,
-      });
-    }
-  }, [task]);
-
-  // console.log("formdata in modal", formData);
   // get all user;
-  // const { data: user } = useQuery({
-  //   queryKey: ['user'],
-  //   queryFn: () => api.get('/users').then(res => res.data),
-  // });
   const { data: users , isLoading: isUsersLoading } = useQuery({
     queryKey: ['user'],
     queryFn: () => api.get('/users').then(res => res.data),
   });
-  // console.log("user", users);
-  // console.log("loading", isUsersLoading);
+  // get all boards;
+  const { data: boards , isLoading: isBoardsLoading } = useQuery({
+    queryKey: ['boards'],
+    queryFn: () => api.get('/boards').then(res => res.data),
+  });
+
+  console.log("formdata ", formData);
+  console.log("boards", boards);
   
+  // console.log("loading", isUsersLoading);
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = () => {
-    onSave(formData);
-    onClose();
-  };
+  const queryClient = useQueryClient();
 
-  const goToBoard = () => {
-    if (task) {
-      navigate(`/board/${task.boardId}`, { state: { openTaskId: task.id } });
-    }
+  // const goToBoard = () => {
+  //   if (task) {
+  //     navigate(`/board/${task.boardId}`, { state: { openTaskId: task.id } });
+  //   }
+  // };
+
+  const navigate = useNavigate();
+  
+  const updateTaskMutation = useMutation({
+    mutationFn: (data: FormData) => api.post('/tasks/create/', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      // navigate('/board/1');
+      onClose();
+    },
+  });
+
+  const formDataToSend = new FormData();
+  formDataToSend.append('title', formData.title);
+  formDataToSend.append('description', formData.description);
+  formDataToSend.append('priority', formData.priority);
+  formDataToSend.append('status', formData.status);
+  formDataToSend.append('assigneeId', formData.assigneeId);
+  formDataToSend.append('boardId', formData.boardId);
+
+
+  const handleSubmit = () => {
+    updateTaskMutation.mutate(formDataToSend);
   };
 
   return (
@@ -108,7 +115,7 @@ const TaskModal = ({ open, onClose, task, onSave }: TaskModalProps) => {
       <Paper sx={modalStyle}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
           <Typography variant="h6">
-            Edit Task
+            Create new task
           </Typography>
           <IconButton onClick={onClose}>
             <CloseIcon />
@@ -171,22 +178,22 @@ const TaskModal = ({ open, onClose, task, onSave }: TaskModalProps) => {
             onChange={handleChange}
             label="Executor"
           >
-            {users?.data?.map((user: any) => (
-              <MenuItem key={user.id} value={user.id}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Avatar 
-                    src={user.avatarUrl} 
-                    alt={user.fullName}
-                    sx={{ width: 24, height: 24 }}
-                  />
-                  <Box>
-                    <Typography variant="body1">{user.fullName}</Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {user.email}
-                    </Typography>
-                  </Box>
+          {users?.data?.map((user: any) => (
+            <MenuItem key={user.id} value={user.id}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Avatar 
+                  src={user.avatarUrl} 
+                  alt={user.fullName}
+                  sx={{ width: 24, height: 24 }}
+                />
+                <Box>
+                  <Typography variant="body1">{user.fullName}</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {user.email}
+                  </Typography>
                 </Box>
-              </MenuItem>
+              </Box>
+            </MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -196,20 +203,24 @@ const TaskModal = ({ open, onClose, task, onSave }: TaskModalProps) => {
           <Select
             name="boardId"
             value={formData.boardId}
+            onChange={handleChange}
             label="Board"
           >
-            <MenuItem value={formData.boardId}>Current Board</MenuItem>
+            {boards?.data?.map((board: any) => (
+            <MenuItem key={board.id} value={board.id}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box>
+                  <Typography variant="body2">{board.name}</Typography>
+                </Box>
+              </Box>
+            </MenuItem>
+            ))}
           </Select>
         </FormControl>
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
-          {!isBoardPage && task && (
-            <Button variant="outlined" onClick={goToBoard}>
-              Go to Board
-            </Button>
-          )}
           <Button variant="contained" onClick={handleSubmit}>
-            Save
+            Create
           </Button>
         </Box>
       </Paper>
@@ -217,4 +228,4 @@ const TaskModal = ({ open, onClose, task, onSave }: TaskModalProps) => {
   );
 };
 
-export default TaskModal;
+export default CreateTaskModal;

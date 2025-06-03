@@ -16,7 +16,7 @@ import {
 
 export default function IssuesPage() {
 
-  // filter and search
+  // get all tasks then filter and search
   const [filters, setFilters] = useState({
     status: '',
     search: '',
@@ -28,18 +28,19 @@ export default function IssuesPage() {
   const filteredTasks = tasks?.data?.filter((task: Task) => {
     return (
       (!filters.status || task.status === filters.status) &&
-      (!filters.search || task.title.includes(filters.search) || task.assignee.fullName.includes(filters.search))
+      (!filters.search || task.title.includes(filters.search) || task.assignee?.fullName.includes(filters.search))
     );
   });
 
   // modal open and edit
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
-  const [mode, setMode] = useState<'view' | 'edit' | 'create'>('view');
+  // const [mode, setMode] = useState<'view' | 'edit' | 'create'>('view');
+  
 
   const handleTaskClick = (task: Task) => {
     setSelectedTask(task);
-    setMode('view');
+    // setMode('view');
     setIsModalOpen(true);
   };
 
@@ -77,9 +78,6 @@ export default function IssuesPage() {
             <MenuItem value="Done">Done</MenuItem>
           </Select>
         </FormControl>
-        <Button variant="contained" onClick={() => setIsModalOpen(true)}>
-          Create Task
-        </Button>
       </Box>
       {isLoading ? (
         <CircularProgress />
@@ -88,19 +86,16 @@ export default function IssuesPage() {
           {filteredTasks?.map((task: Task) => (
             <>
               <Box 
+                onClick={() => handleTaskClick(task)}
                 key={task.id} 
-                onClick={() => setSelectedTask(task)}
                 sx={{ p: 2, border: '1px solid #eee', cursor: 'pointer' }} 
               >
                 <p>{task.title}</p>
                 <p>{task.description}</p>
                 <p>Status: {task.status}</p>
-                <p>Avatar: {task.assignee.avatarUrl}</p>
-                <p>Full Name: {task.assignee.fullName}</p>
+                <p>Avatar: {task.assignee?.avatarUrl}</p>
+                <p>Full Name: {task.assignee?.fullName}</p>
               </Box>
-              <div onClick={() => handleTaskClick(task)}>
-                Click me to view task
-              </div>
             </>
           ))}
         </Box>

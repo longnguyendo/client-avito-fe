@@ -1,7 +1,7 @@
 import { AppBar, Toolbar, Button } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
-import TaskModal from './TaskModal';
+import CreateTaskModal from './CreateTaskModal';
 
 export default function Header() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -15,7 +15,7 @@ export default function Header() {
           <Button color="inherit" onClick={() => setModalOpen(true)}>Create Task</Button>
         </Toolbar>
       </AppBar>
-      <TaskModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      <CreateTaskModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </>
   );
 }
