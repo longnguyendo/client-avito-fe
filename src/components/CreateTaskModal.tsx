@@ -17,7 +17,8 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import type { Task, User } from '../types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api } from '../api/client';
+import { Api } from '../types2';
+import type {ModelsCreateTaskRequest } from '../types2';
 
 const modalStyle = {
   position: 'absolute',
@@ -39,35 +40,38 @@ interface TaskModalProps {
   task?: Task;
   // onSave: (taskData: Partial<Task>) => void;
 }
+interface FormValues {
+  title: string;
+  description: string;
+  priority: 'Low' | 'Medium' | 'High';
+  status: 'Backlog' | 'InProgress' | 'Done';
+  assigneeId: string;
+  boardId: string;
+}
 
 const CreateTaskModal = ({ open, onClose}: TaskModalProps) => {
 
   const location = useLocation();
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ModelsCreateTaskRequest>({
     title: '',
     description: '',
     priority: 'Medium',
-    status: 'Backlog',
-    assigneeId: '',
-    boardId: '',
+    assigneeId: 1,
+    boardId: 1,
   });
 
-  // get all user;
-  const { data: users , isLoading: isUsersLoading } = useQuery({
-    queryKey: ['user'],
-    queryFn: () => api.get('/users').then(res => res.data),
+// Fetch all users
+  const { data: users = []} = useQuery({
+    queryKey: ['users'],
+    queryFn: () => api.users.usersList().then(res => res.data),
   });
-  // get all boards;
-  const { data: boards , isLoading: isBoardsLoading } = useQuery({
+
+  // Fetch all boards
+  const { data: boards = [] } = useQuery({
     queryKey: ['boards'],
-    queryFn: () => api.get('/boards').then(res => res.data),
+    queryFn: () => api.boards.boardsList().then(res => res.data),
   });
-
-  console.log("formdata ", formData);
-  console.log("boards", boards);
-  
-  // console.log("loading", isUsersLoading);
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -76,35 +80,55 @@ const CreateTaskModal = ({ open, onClose}: TaskModalProps) => {
 
   const queryClient = useQueryClient();
 
-  // const goToBoard = () => {
-  //   if (task) {
-  //     navigate(`/board/${task.boardId}`, { state: { openTaskId: task.id } });
-  //   }
-  // };
-
   const navigate = useNavigate();
-  
-  const updateTaskMutation = useMutation({
-    mutationFn: (data: FormData) => api.post('/tasks/create/', data),
-    onSuccess: () => {
+
+  // const formDataToSend = new FormData();
+  // formDataToSend.append('title', formData.title);
+  // formDataToSend.append('description', formData.description);
+  // formDataToSend.append('priority', formData.priority);
+  // formDataToSend.append('status', formData.status);
+  // formDataToSend.append('assigneeId', formData.assigneeId);
+  // formDataToSend.append('boardId', formData.boardId);
+
+  //   const createTaskMutation = useMutation({
+  //   mutationFn: (formDataToSend) => { 
+  //     return api.post('/tasks/create/', formDataToSend)
+  //   },
+  //   onSuccess: () => {
+  //     queryClient.invalidateQueries({ queryKey: ['tasks'] });
+  //     navigate('/board/1');
+  //     onClose();
+  //   },
+  // });
+
+
+  // const handleSubmit = () => {
+  //   createTaskMutation.mutate(formDataToSend);
+  // };
+  const api = new Api();
+  const createTaskMutation = useMutation({
+    mutationFn: (taskData: ModelsCreateTaskRequest) => 
+      api.tasks.createCreate(taskData),
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      // navigate('/board/1');
+      // Redirect to the board after creation
+      navigate(`/board/${variables.boardId}`);
       onClose();
     },
+    onError: (error) => {
+      console.error('Error creating task:', error);
+    }
   });
 
-  const formDataToSend = new FormData();
-  formDataToSend.append('title', formData.title);
-  formDataToSend.append('description', formData.description);
-  formDataToSend.append('priority', formData.priority);
-  formDataToSend.append('status', formData.status);
-  formDataToSend.append('assigneeId', formData.assigneeId);
-  formDataToSend.append('boardId', formData.boardId);
-
-
   const handleSubmit = () => {
-    updateTaskMutation.mutate(formDataToSend);
-  };
+    createTaskMutation.mutate({
+      title: formData.title,
+      description: formData.description,
+      priority: formData.priority,
+      assigneeId: formData.assigneeId,
+      boardId: formData.boardId // This will be used for redirect
+    });
+  } 
 
   return (
     <Modal
@@ -157,20 +181,6 @@ const CreateTaskModal = ({ open, onClose}: TaskModalProps) => {
         </FormControl>
 
         <FormControl fullWidth margin="normal">
-          <InputLabel>Status</InputLabel>
-          <Select
-            name="status"
-            value={formData.status}
-            onChange={handleChange}
-            label="Status"
-          >
-            <MenuItem value="Backlog">Backlog</MenuItem>
-            <MenuItem value="InProgress">In Progress</MenuItem>
-            <MenuItem value="Done">Done</MenuItem>
-          </Select>
-        </FormControl>
-
-        <FormControl fullWidth margin="normal">
           <InputLabel>Executor</InputLabel>
           <Select
             name="assigneeId"
@@ -219,8 +229,8 @@ const CreateTaskModal = ({ open, onClose}: TaskModalProps) => {
         </FormControl>
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
-          <Button variant="contained" onClick={handleSubmit}>
-            Create
+          <Button variant="contained" onClick={handleSubmit} disabled={createTaskMutation.isPending}>
+            {createTaskMutation.isPending ? 'Creating...' : 'Create'}
           </Button>
         </Box>
       </Paper>

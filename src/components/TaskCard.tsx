@@ -12,7 +12,6 @@ export default function TaskCard({ task }: { task: Task }) {
     item: { id: task.id },
   }));
   drag(ref);
-  // console.log("in task card", task);
   return (
     <>
       <div 
@@ -28,9 +27,10 @@ export default function TaskCard({ task }: { task: Task }) {
         </Card>
       </div>
       <TaskModal 
+        // onSave={}
         open={modalOpen} 
         onClose={() => setModalOpen(false)} 
-        taskId={task}
+        task={task}
       />
     </>
   );

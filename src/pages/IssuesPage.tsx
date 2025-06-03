@@ -11,7 +11,9 @@ import {
   InputLabel, 
   FormControl, 
   Button,
-  CircularProgress
+  CircularProgress,
+  Typography,
+  Avatar
 } from '@mui/material';
 
 export default function IssuesPage() {
@@ -40,22 +42,11 @@ export default function IssuesPage() {
 
   const handleTaskClick = (task: Task) => {
     setSelectedTask(task);
-    // setMode('view');
-    setIsModalOpen(true);
-  };
-
-  const handleEditClick = () => {
-    setMode('edit');
-  };
-
-  const handleCreateClick = () => {
-    setSelectedTask(undefined);
-    setMode('create');
     setIsModalOpen(true);
   };
 
   const handleSave = (taskData: Partial<Task>) => {
-    console.log('Saving task:', taskData);
+    // console.log('Saving task:', taskData);
   };
 
   return (
@@ -88,13 +79,52 @@ export default function IssuesPage() {
               <Box 
                 onClick={() => handleTaskClick(task)}
                 key={task.id} 
-                sx={{ p: 2, border: '1px solid #eee', cursor: 'pointer' }} 
+                sx={{
+                  p: 2,
+                  border: '1px solid #ddd',
+                  borderRadius: '8px',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+                  cursor: 'pointer',
+                  backgroundColor: '#fafafa',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                    backgroundColor: '#f0f0f0',
+                  },
+                  '& p': {
+                    m: 0,
+                    mb: 0.5,
+                    color: '#333',
+                    fontSize: '14px',
+                    lineHeight: 1.5,
+                    '&:last-child': {
+                      mb: 0,
+                    },
+                  },
+                }}
               >
-                <p>{task.title}</p>
-                <p>{task.description}</p>
-                <p>Status: {task.status}</p>
-                <p>Avatar: {task.assignee?.avatarUrl}</p>
-                <p>Full Name: {task.assignee?.fullName}</p>
+                <Typography variant="h6" gutterBottom>
+                  {task.title}
+                </Typography>
+
+                <Typography variant="body2" gutterBottom>
+                  {task.description}
+                </Typography>
+
+                <Typography variant="body2" gutterBottom>
+                  <strong>Status:</strong> {task.status}
+                </Typography>
+
+                {/* Nếu muốn hiển thị avatar hình ảnh */}
+                {task.assignee?.avatarUrl && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                    <Avatar src={task.assignee.avatarUrl} alt={task.assignee.fullName} />
+                    <Typography variant="body2">
+                      {task.assignee.fullName}
+                    </Typography>
+                  </Box>
+                )}
               </Box>
             </>
           ))}
@@ -104,7 +134,6 @@ export default function IssuesPage() {
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         task={selectedTask}
-        mode='edit'
         onSave={handleSave}
       />
     </Box>

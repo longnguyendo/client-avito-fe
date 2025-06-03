@@ -105,10 +105,8 @@ export default function BoardPage() {
 
   // console.log('tasks', tasks);
   const tasksByStatus = useMemo(() => {
-    const group = Object.groupBy(tasks?.data || [], ({ status }) => { return status});
-    // console.log(group);
+    const group = Object.groupBy(tasks?.data || [], (task:any) => task.status);
     return group;
-    // return (status: Status) => tasks?.data?.filter((task: any) => task.status === status);
   }, [tasks]);
   if (isLoading) return <CircularProgress />;
 
@@ -122,9 +120,6 @@ export default function BoardPage() {
       <Box sx={{ p: 2 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
           <Typography variant="h4">{tasks?.data?.title}</Typography>
-          <Button variant="contained" onClick={() => setModalOpen(true)}>
-            Add Task
-          </Button>
         </Box>
 
          <Box sx={{ display: 'flex', gap: 2, overflowX: 'auto', pb: 2, minHeight: '70vh'}}>

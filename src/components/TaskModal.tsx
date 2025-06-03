@@ -17,8 +17,10 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import type { Task, User } from '../types';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '../api/client';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+// import { api } from '../api/client';
+import type { ModelsUpdateTaskRequest } from '../types2';
+import { Api } from '../types2';
 
 const modalStyle = {
   position: 'absolute',
@@ -38,7 +40,6 @@ interface TaskModalProps {
   open: boolean;
   onClose: () => void;
   task?: Task;
-  // mode: 'view' | 'edit' | 'create';
   onSave: (taskData: Partial<Task>) => void;
 }
 
@@ -48,51 +49,71 @@ const TaskModal = ({ open, onClose, task, onSave }: TaskModalProps) => {
   const navigate = useNavigate();
   const isBoardPage = location.pathname.includes('/board');
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ModelsUpdateTaskRequest>({
     title: '',
     description: '',
     priority: 'Medium',
     status: 'Backlog',
-    assigneeId: '',
-    boardId: '',
+    assigneeId: 1,
   });
 
   useEffect(() => {
     if (task) {
       setFormData({
+        id : task?.id,
         title: task.title,
         description: task.description ?? '',
         priority: task.priority,
         status: task.status,
-        assigneeId: task.assignee?.id,
-        boardId: task.boardId,
+        assigneeId: `${task.assignee?.id}`,
       });
     }
   }, [task]);
-
-  const { data: users , isLoading: isUsersLoading } = useQuery({
-    queryKey: ['user'],
-    queryFn: () => api.get('/users').then(res => res.data),
+  
+// Fetch all users
+  const { data: users = [], isLoading: isUsersLoading } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => api.users.usersList().then(res => res.data),
   });
 
-  const { data: boards , isLoading: isBoardsLoading } = useQuery({
+  // Fetch all boards
+  const { data: boards = [], isLoading: isBoardsLoading } = useQuery({
     queryKey: ['boards'],
-    queryFn: () => api.get('/boards').then(res => res.data),
+    queryFn: () => api.boards.boardsList().then(res => res.data),
   });
-  
-  
   const handleChange = (e: any) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const queryClient = useQueryClient();
+
+  const api = new Api();
+
+  const updateTaskMutation = useMutation({
+    mutationFn: (data: { id: number; updates: ModelsUpdateTaskRequest }) => 
+      api.tasks.updateUpdate(data.id, data.updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', task?.boardId], exact: false });
+    }
+  });
+
   const handleSubmit = () => {
+    if (!task?.id) return;
+
+    updateTaskMutation.mutate({
+      id: task.id,
+      updates: {
+        title: formData.title,
+        description: formData.description,
+        priority: formData.priority,
+        status: formData.status,
+        assigneeId: Number(formData.assigneeId) // Convert to number
+      }
+    });
     onSave(formData);
     onClose();
   };
-
-  console.log("task & form data from task modal",task, formData);
-  
 
   const goToBoard = () => {
     if (task) {
