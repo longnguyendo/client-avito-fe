@@ -44,7 +44,6 @@ interface TaskModalProps {
 
 const TaskModal = ({ open, onClose, task, onSave }: TaskModalProps) => {
 
-
   const location = useLocation();
   const navigate = useNavigate();
   const isBoardPage = location.pathname.includes('/board');
@@ -55,6 +54,7 @@ const TaskModal = ({ open, onClose, task, onSave }: TaskModalProps) => {
     priority: 'Medium',
     status: 'Backlog',
     assigneeId: '',
+    boardId: '',
   });
 
   useEffect(() => {
@@ -64,25 +64,23 @@ const TaskModal = ({ open, onClose, task, onSave }: TaskModalProps) => {
         description: task.description ?? '',
         priority: task.priority,
         status: task.status,
-        assigneeId: task.assigneeId,
+        assigneeId: task.assignee?.id,
+        boardId: task.boardId,
       });
     }
   }, [task]);
 
-  // console.log("formdata in modal", formData);
-  // get all user;
-  // const { data: user } = useQuery({
-  //   queryKey: ['user'],
-  //   queryFn: () => api.get('/users').then(res => res.data),
-  // });
   const { data: users , isLoading: isUsersLoading } = useQuery({
     queryKey: ['user'],
     queryFn: () => api.get('/users').then(res => res.data),
   });
-  // console.log("user", users);
-  // console.log("loading", isUsersLoading);
-  
 
+  const { data: boards , isLoading: isBoardsLoading } = useQuery({
+    queryKey: ['boards'],
+    queryFn: () => api.get('/boards').then(res => res.data),
+  });
+  
+  
   const handleChange = (e: any) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -92,6 +90,9 @@ const TaskModal = ({ open, onClose, task, onSave }: TaskModalProps) => {
     onSave(formData);
     onClose();
   };
+
+  console.log("task & form data from task modal",task, formData);
+  
 
   const goToBoard = () => {
     if (task) {
@@ -196,9 +197,18 @@ const TaskModal = ({ open, onClose, task, onSave }: TaskModalProps) => {
           <Select
             name="boardId"
             value={formData.boardId}
+            onChange={handleChange}
             label="Board"
           >
-            <MenuItem value={formData.boardId}>Current Board</MenuItem>
+            {boards?.data?.map((board: any) => (
+            <MenuItem key={board.id} value={board.id}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box>
+                  <Typography variant="body2">{board.name}</Typography>
+                </Box>
+              </Box>
+            </MenuItem>
+            ))}
           </Select>
         </FormControl>
 
